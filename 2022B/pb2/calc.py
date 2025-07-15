@@ -54,6 +54,25 @@ def calc2(alp2, theta, R):
     r2 = np.sqrt(R*R/(2*(1-np.cos(2*alp2))))
 
     return (x2,y2,r2)
+import sympy as sp
+
+def calc2_2(alpha, theta, R_val):
+    
+    # 第一组解
+    x1 = R_val * (-1*sp.sin(theta) / sp.tan(alpha) + sp.cos(theta)) / 2
+    y1 = R_val * (sp.sin(theta) + sp.cos(theta) / sp.tan(alpha)) / 2
+
+    # 第二组解
+    x2 = R_val * (sp.sin(theta) / sp.tan(alpha) + sp.cos(theta)) / 2
+    y2 = R_val * (sp.sin(theta) - sp.cos(theta) / sp.tan(alpha)) / 2
+
+    # 半径
+    r_squared = R_val**2 / (4 * sp.sin(alpha)**2)
+    r = sp.sqrt(r_squared)
+
+    # 返回两组解（数值化）
+    return (float(x1.evalf()), float(y1.evalf()), float(r.evalf()))
+    #return  (float(x2.evalf()), float(y2.evalf()), float(r.evalf()))
 
 def calc3(alp3, theta, R): 
     r3_2 = R*R*(1-np.cos(theta))/(1-np.cos(2*alp3))
@@ -78,7 +97,7 @@ def solve(O, A, B, C): # A is the drone to be measuer
 
     ret = []
     ret.append(calc1(alp1, R))
-    ret.append(calc2(alp2, theta, R))
+    ret.append(calc2_2(alp2, theta, R))
     ret.append(calc3(alp3, theta, R))
 
     return ret
