@@ -13,14 +13,15 @@ fig, ax = plt.subplots()
 
 plt.scatter(x,y,color='red',s=50,marker='o')
 
-solveret = calc.solve(0,9,1,3)
+solveret = calc.solve(0,5,1,3)
 
-solx = []
-soly = []
+solx = [solveret[0]]
+soly = [solveret[1]]
 
-for i in range (0,8): 
-    solx.append(solveret[i][0])
-    soly.append(solveret[i][1])
+# for i in range (0,12): 
+#     solx.append(solveret[i][0])
+#     soly.append(solveret[i][1])
+#     plt.text(solveret[i][0], solveret[i][1], str(i))
 
 plt.scatter(solx,soly,color='blue',s=50,marker='o')
 

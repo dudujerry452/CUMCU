@@ -4,27 +4,23 @@ import sympy as sp
 
 from data import drone_x
 from data import drone_y
+from data import drone_sx
+from data import drone_sy
 
 def recv_angle(a,o,b): 
-    xa = drone_x[a]
-    ya = drone_y[a]
-    xb = drone_x[b]
-    yb = drone_y[b]
+    xa = drone_sx[a]
+    ya = drone_sy[a]
+    xb = drone_sx[b]
+    yb = drone_sy[b]
     xo = drone_x[o]
     yo = drone_y[o]
 
-    print(f"{xa}, {ya}")
-    print(f"{xo}, {yo}")
-    print(f"{xb}, {yb}")
-    
     vec1 = (xa - xo, ya - yo)
     vec2 = (xb - xo, yb - yo)
 
 
     angle_1 = math.atan2(vec1[1], vec1[0])
     angle_2 = math.atan2(vec2[1], vec2[0])
-    print('angle1 = ', angle_1)
-    print('angle2 = ', angle_2)
 
     angle_rad = abs(angle_1 - angle_2)
     
@@ -33,8 +29,27 @@ def recv_angle(a,o,b):
 
     return angle_rad
 
-# print(recv_angle(1,0,3)/math.pi*180)
+def recv_angles(a,o,b): 
+    xa = drone_sx[a]
+    ya = drone_sy[a]
+    xb = drone_sx[b]
+    yb = drone_sy[b]
+    xo = drone_sx[o]
+    yo = drone_sy[o]
 
+    vec1 = (xa - xo, ya - yo)
+    vec2 = (xb - xo, yb - yo)
+
+
+    angle_1 = math.atan2(vec1[1], vec1[0])
+    angle_2 = math.atan2(vec2[1], vec2[0])
+
+    angle_rad = abs(angle_1 - angle_2)
+    
+    if(angle_rad > math.pi): 
+        angle_rad = 2*math.pi - angle_rad
+
+    return angle_rad
 def calc1(alp1, R): 
     x1 = R/2 
     r1 = (R*R)/(2*(1-np.cos(2*alp1)))
@@ -133,14 +148,28 @@ def calc3_3(alpha, theta, R_val):
 
     # 返回两组解（都是 r² 正的）
     return [(float(x1.evalf()), float(y1.evalf()), float(r.evalf())), 
-            (float(x2.evalf()), float(y2.evalf()), float(r.evalf()))]
-    #return (float(x3.evalf()), float(y3.evalf()), float(r.evalf()))
+            (float(x2.evalf()), float(y2.evalf()), float(r.evalf())),
+            (float(x3.evalf()), float(y3.evalf()), float(r.evalf()))]
 
 def solve(O, A, B, C): # A is the drone to be measuer 
     alp1 = recv_angle(B,A,O)
     alp2 = recv_angle(C,A,O)
     alp3 = recv_angle(C,A,B)
-    theta = recv_angle(B,O,C)
+    theta = recv_angles(B,O,C)
+    solution = 0
+
+    if abs(alp1 + alp2 - alp3) < 1e-3: 
+        if alp3 > math.pi/2: 
+            solution = 5
+        else : 
+            solution = 6
+    elif alp1 - alp2 - alp3 < 1e-3: 
+        solution = 0
+    elif alp2 - alp1 - alp3 < 1e-3: 
+        solution = 9
+
+    print("theta = ", theta)
+    print("alp3 = ", alp3)
 
 
     R = 100
@@ -154,7 +183,7 @@ def solve(O, A, B, C): # A is the drone to be measuer
 
     for i in range(0,2): 
         for j in range(0,2): 
-            for k in range(0,2): 
+            for k in range(0,3): 
                 r1,r2,r3 = ret[0][i], ret[1][j], ret[2][k]
                 k1 = r1[0]**2 + r1[1]**2
                 k2 = r2[0]**2 + r2[1]**2
@@ -176,8 +205,9 @@ def solve(O, A, B, C): # A is the drone to be measuer
                 X = X.reshape(1,3)
                 Xs = np.vstack((Xs, X))
 
-
-    return Xs
+    res1 = Xs[solution]
+    res2 = [res1[0], res1[1]]
+    return res2
 
 if __name__ == '__main__': 
     res = solve(0, 2, 3, 1)
