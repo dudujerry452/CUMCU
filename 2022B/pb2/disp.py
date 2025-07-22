@@ -13,25 +13,14 @@ fig, ax = plt.subplots()
 
 plt.scatter(x,y,color='red',s=50,marker='o')
 
-solveret = calc.solve(0,9,1,3)
-
-solx = []
-soly = []
-
-for i in range (0,8): 
-    solx.append(solveret[i][0])
-    soly.append(solveret[i][1])
-
+solveret = calc.solve(0,4,7,9,True)
+solx = [solveret[0]]
+soly = [solveret[1]]
 plt.scatter(solx,soly,color='blue',s=50,marker='o')
 
 
 maincircle = plt.Circle((0,0),100, color='yellow', fill=False, linestyle='--', linewidth=2)
 ax.add_patch(maincircle)
-
-
-
-
-
 
 ax.axhline(y=0, color='black', linewidth=1.2)
 ax.axvline(x=0, color='black', linewidth=1.2)

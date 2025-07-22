@@ -4,27 +4,23 @@ import sympy as sp
 
 from data import drone_x
 from data import drone_y
+from data import drone_sx
+from data import drone_sy
 
 def recv_angle(a,o,b): 
-    xa = drone_x[a]
-    ya = drone_y[a]
-    xb = drone_x[b]
-    yb = drone_y[b]
+    xa = drone_sx[a]
+    ya = drone_sy[a]
+    xb = drone_sx[b]
+    yb = drone_sy[b]
     xo = drone_x[o]
     yo = drone_y[o]
 
-    print(f"{xa}, {ya}")
-    print(f"{xo}, {yo}")
-    print(f"{xb}, {yb}")
-    
     vec1 = (xa - xo, ya - yo)
     vec2 = (xb - xo, yb - yo)
 
 
     angle_1 = math.atan2(vec1[1], vec1[0])
     angle_2 = math.atan2(vec2[1], vec2[0])
-    print('angle1 = ', angle_1)
-    print('angle2 = ', angle_2)
 
     angle_rad = abs(angle_1 - angle_2)
     
@@ -33,8 +29,49 @@ def recv_angle(a,o,b):
 
     return angle_rad
 
-# print(recv_angle(1,0,3)/math.pi*180)
+def recv_angles(a,o,b): 
+    xa = drone_sx[a]
+    ya = drone_sy[a]
+    xb = drone_sx[b]
+    yb = drone_sy[b]
+    xo = drone_sx[o]
+    yo = drone_sy[o]
 
+    vec1 = (xa - xo, ya - yo)
+    vec2 = (xb - xo, yb - yo)
+
+
+    angle_1 = math.atan2(vec1[1], vec1[0])
+    angle_2 = math.atan2(vec2[1], vec2[0])
+
+    angle_rad = abs(angle_1 - angle_2)
+    
+    if(angle_rad > math.pi): 
+        angle_rad = 2*math.pi - angle_rad
+
+    return angle_rad
+
+def recv_angler(a,o,b): 
+    xa = drone_x[a]
+    ya = drone_y[a]
+    xb = drone_x[b]
+    yb = drone_y[b]
+    xo = drone_x[o]
+    yo = drone_y[o]
+
+    vec1 = (xa - xo, ya - yo)
+    vec2 = (xb - xo, yb - yo)
+
+
+    angle_1 = math.atan2(vec1[1], vec1[0])
+    angle_2 = math.atan2(vec2[1], vec2[0])
+
+    angle_rad = abs(angle_1 - angle_2)
+    
+    if(angle_rad > math.pi): 
+        angle_rad = 2*math.pi - angle_rad
+
+    return angle_rad
 def calc1(alp1, R): 
     x1 = R/2 
     r1 = (R*R)/(2*(1-np.cos(2*alp1)))
@@ -115,10 +152,6 @@ def calc3_3(alpha, theta, R_val):
     y1 = R * ((sp.cos(theta) - 1) *sp.cos(alpha) + sp.sin(theta)*sp.sin(alpha)) / (2 * sp.sin(alpha))
 
     # 第二组解
-    x2 = R * (sp.sin(theta) / sp.tan(alpha) + sp.cos(theta) + 1) / 2
-    y2 = -R * ((sp.cos(theta) - 1) *sp.cos(alpha) + sp.sin(theta)*sp.sin(alpha)) / (2 * sp.sin(alpha))
-    
-    # 第三组解
     x3 = R * (sp.sin(theta) / sp.tan(alpha) + sp.cos(theta) + 1) / 2
     y3 = -R * ((sp.cos(theta) - 1) *sp.cos(alpha) - sp.sin(theta)*sp.sin(alpha)) / (2 * sp.sin(alpha))
     
@@ -127,20 +160,43 @@ def calc3_3(alpha, theta, R_val):
     r = sp.sqrt(r_squared)
 
     solution1=(float(x1.evalf()), float(y1.evalf()), float(r.evalf()))
-    solution2=(float(x2.evalf()), float(y2.evalf()), float(r.evalf()))
     solutoin3=(float(x3.evalf()), float(y3.evalf()), float(r.evalf()))
 
 
     # 返回两组解（都是 r² 正的）
     return [(float(x1.evalf()), float(y1.evalf()), float(r.evalf())), 
-            (float(x2.evalf()), float(y2.evalf()), float(r.evalf()))]
-    #return (float(x3.evalf()), float(y3.evalf()), float(r.evalf()))
+            (float(x3.evalf()), float(y3.evalf()), float(r.evalf()))]
 
-def solve(O, A, B, C): # A is the drone to be measuer 
+def solve(O, A, B, C, use_real = False): # A is the drone to be measuer 
     alp1 = recv_angle(B,A,O)
     alp2 = recv_angle(C,A,O)
     alp3 = recv_angle(C,A,B)
-    theta = recv_angle(B,O,C)
+    if use_real: 
+        alp1 = recv_angler(B,A,O)
+        alp2 = recv_angler(C,A,O)
+        alp3 = recv_angler(C,A,B)
+
+    theta = recv_angles(B,O,C)
+
+    print("theta = ", theta)
+
+    if theta > math.pi: 
+        theta = 2*math.pi - theta
+
+    solution = 0
+
+    if abs(alp1 + alp2 - alp3) < 1e-3: 
+        if alp3 > math.pi/2: 
+            solution = 3
+        else : 
+            solution = 4
+    elif abs(alp1 - alp2 - alp3) < 1e-3: 
+        solution = 6
+    elif abs(alp2 - alp1 - alp3) < 1e-3: 
+        solution = 0
+
+    print("theta = ", theta)
+    print("alp3 = ", alp3)
 
 
     R = 100
@@ -176,8 +232,17 @@ def solve(O, A, B, C): # A is the drone to be measuer
                 X = X.reshape(1,3)
                 Xs = np.vstack((Xs, X))
 
+    res1 = Xs[solution]
+    angle_rad = np.atan2(res1[1], res1[0])
+    radius = np.sqrt(res1[2])
 
-    return Xs
+    if 40*(C-B) > 180: 
+        angle_rad = 2*math.pi - angle_rad
+
+
+    angle_rad = angle_rad + (B-1)*np.radians(40) 
+    res2 = (radius*np.cos(angle_rad), radius*np.sin(angle_rad))
+    return res2
 
 if __name__ == '__main__': 
     res = solve(0, 2, 3, 1)
