@@ -15,17 +15,15 @@ plt.scatter(x,y,color='red',s=50,marker='o')
 
 solveret = calc.solve(0,9,1,3)
 
-pt1 = solveret[0]
-circle = plt.Circle((pt1[0], pt1[1]), pt1[2], color='blue', fill=False, linestyle='--', linewidth=2)
-ax.add_patch(circle)
+solx = []
+soly = []
 
-pt2 = solveret[1]
-circle = plt.Circle((pt2[0], pt2[1]), pt2[2], color='blue', fill=False, linestyle='--', linewidth=2)
-ax.add_patch(circle)
+for i in range (0,8): 
+    solx.append(solveret[i][0])
+    soly.append(solveret[i][1])
 
-pt3 = solveret[2]
-circle = plt.Circle((pt3[0], pt3[1]), pt3[2], color='blue', fill=False, linestyle='--', linewidth=2)
-ax.add_patch(circle)
+plt.scatter(solx,soly,color='blue',s=50,marker='o')
+
 
 maincircle = plt.Circle((0,0),100, color='yellow', fill=False, linestyle='--', linewidth=2)
 ax.add_patch(maincircle)

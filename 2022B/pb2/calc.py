@@ -53,8 +53,8 @@ def calc1_1(alp1,R):
     solution1=(float (x1), float(y1), float(r))
     solution2=(float(x2), float(y2), float(r))
 
-    #return (float (x1), float(y1), float(r))
-    return (float(x2), float(y2), float(r))
+    return [(float (x1), float(y1), float(r)), 
+            (float(x2), float(y2), float(r))]
 
 
 def calc2(alp2, theta, R): 
@@ -88,8 +88,8 @@ def calc2_2(alpha, theta, R_val):
     solution1=(float(x1.evalf()), float(y1.evalf()), float(r.evalf()))
     solution2=(float(x2.evalf()), float(y2.evalf()), float(r.evalf()))
     # 返回两组解（数值化）
-    #return (float(x1.evalf()), float(y1.evalf()), float(r.evalf()))
-    return  (float(x2.evalf()), float(y2.evalf()), float(r.evalf()))
+    return [(float(x1.evalf()), float(y1.evalf()), float(r.evalf())),
+            (float(x2.evalf()), float(y2.evalf()), float(r.evalf()))]
 
 def calc3(alp3, theta, R): 
     r3_2 = R*R*(1-np.cos(theta))/(1-np.cos(2*alp3))
@@ -132,8 +132,8 @@ def calc3_3(alpha, theta, R_val):
 
 
     # 返回两组解（都是 r² 正的）
-    return (float(x1.evalf()), float(y1.evalf()), float(r.evalf()))
-    #return  (float(x2.evalf()), float(y2.evalf()), float(r.evalf()))
+    return [(float(x1.evalf()), float(y1.evalf()), float(r.evalf())), 
+            (float(x2.evalf()), float(y2.evalf()), float(r.evalf()))]
     #return (float(x3.evalf()), float(y3.evalf()), float(r.evalf()))
 
 def solve(O, A, B, C): # A is the drone to be measuer 
@@ -150,7 +150,35 @@ def solve(O, A, B, C): # A is the drone to be measuer
     ret.append(calc2_2(alp2, theta, R))
     ret.append(calc3_3(alp3, theta, R))
 
-    return ret
+    Xs = np.empty((0,3))
+
+    for i in range(0,2): 
+        for j in range(0,2): 
+            for k in range(0,2): 
+                r1,r2,r3 = ret[0][i], ret[1][j], ret[2][k]
+                k1 = r1[0]**2 + r1[1]**2
+                k2 = r2[0]**2 + r2[1]**2
+                k3 = r3[0]**2 + r3[1]**2
+                A = np.array(
+                    [
+                        [-2*r1[0], -2*r1[1], 1], 
+                        [-2*r2[0], -2*r2[1], 1], 
+                        [-2*r3[0], -2*r3[1], 1]
+                    ]
+                )
+                Y = np.array([
+                    [r1[2]**2 - k1], 
+                    [r2[2]**2 - k2], 
+                    [r3[2]**2 - k3]
+                ])
+
+                X = np.linalg.inv(A.T@A)@A.T@Y
+                X = X.reshape(1,3)
+                Xs = np.vstack((Xs, X))
 
 
-solve(0, 2, 3, 1)
+    return Xs
+
+if __name__ == '__main__': 
+    res = solve(0, 2, 3, 1)
+    print(res)
