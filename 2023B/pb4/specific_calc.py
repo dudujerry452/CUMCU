@@ -9,7 +9,8 @@ from calc import *
 from find_ray_surface_intersection import *
 
 def gethitpoint1(point1, point2, pos):
-
+    if pos < 1e-6: 
+        pos = 1e-6
 
     vec_origin = point2 - point1 
     vec = vec_origin * pos
@@ -34,3 +35,15 @@ def getwidth(point1, point2, pos):
     for p1, p2 in zip(hit0, hit1): 
         tsum += (p2-p1)**2 
     return np.sqrt(tsum)
+
+def getchainpoints(points, resolution): 
+    pointsA = []
+    pointsB = []
+    for i in range(len(points)-1): 
+        progress = 0.0
+        for j in range(0, resolution+2): 
+            ret = gethitpoint1(points[i], points[i+1], progress)
+            pointsA.append(ret[0])
+            pointsB.append(ret[1])
+            progress += 1/(resolution+1)
+    return [pointsA, pointsB]

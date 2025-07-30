@@ -42,17 +42,43 @@ ax.set_aspect('equal', adjustable='box')
 ax.grid(True, linestyle='--', alpha=0.6)
 
 
+init_points = [[1,1], [1,2], [2,3], [2,2], [3,2]]
+points = []
+points_listx = []
+points_listy = []
+for i in init_points: 
+    points.append(np.array(i)*1852)
+    points_listx.append(points[len(points)-1][0])
+    points_listy.append(points[len(points)-1][1])
 
-point1 = np.array([1,2]) * 1852
-point2 = np.array([3,4]) * 1852
+# for i in range(len(points)-1): 
+#     ax.plot(points[i][0], points[i+1][0],
+#             points[i][1], points[i+1][1], 
+#             linewidth = 20,
+#             color='blue', 
+#             linestyle='--')
+    # ax.plot(points[i][0], points[i][1], 
+    #         linewidth = 2,
+    #         color='blue', 
+    #         linestyle='--')
+ax.plot(points_listx, points_listy, 
+            linewidth = 2,
+            color='blue', 
+            linestyle='--')
 
-hitpoint = gethitpoint1(point1, point2, 0.9)
-print("width = ", getwidth(point1, point2, 0.5))
+hitpoints = getchainpoints(points, 2)
 
-ax.scatter(point1[0], point1[1], color='blue', s=50, marker='o')
-ax.scatter(point2[0], point2[1], color='blue', s=50, marker='o')
-ax.scatter(hitpoint[0][0], hitpoint[0][1], color='blue', s=50, marker='o')
-ax.scatter(hitpoint[1][0], hitpoint[1][1], color='blue', s=50, marker='o')
+print("hitpoints", hitpoints[0])
+
+for i,j,_ in hitpoints[0]: 
+    ax.scatter(i, j, color='blue', s=50, marker='o')
+for i,j,_ in hitpoints[1]: 
+    ax.scatter(i, j, color='red', s=50, marker='o')
+
+# ax.scatter(point1[0], point1[1], color='blue', s=50, marker='o')
+# ax.scatter(point2[0], point2[1], color='blue', s=50, marker='o')
+# ax.scatter(hitpoint[0][0], hitpoint[0][1], color='blue', s=50, marker='o')
+# ax.scatter(hitpoint[1][0], hitpoint[1][1], color='blue', s=50, marker='o')
 
 
 
