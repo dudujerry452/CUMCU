@@ -49,13 +49,10 @@ def getchainpoints(points, resolution):
             progress += 1/(resolution+1)
     return [pointsA, pointsB]
 
-
 def get_chain_area(points, resolution): 
-    total_overlay_area = 0.0
-    # total_poly = Polygon().buffer(0)
+    total_area = 0.0
+    total_poly = MultiPolygon().buffer(0)
     intersection_poly = []
-    total_pointsA = []
-    total_pointsB = []
     for i in range(len(points)-1): 
         progress = 0.0
         pointsA = []
@@ -65,32 +62,63 @@ def get_chain_area(points, resolution):
             pointsA.append(ret[0])
             pointsB.append(ret[1])
             progress += 1/(resolution+1)
-        total_poly = Polygon().buffer(0)
-        if len(total_pointsA) != 0: 
-            total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]])).buffer(0)
-        total_pointsA.extend(pointsA) 
-        total_pointsB.extend(pointsB)
+        # if len(total_pointsA) != 0: 
+        #     total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]])).buffer(0)
         pointsB = pointsB[::-1]
         pointsA = np.vstack([pointsA, pointsB])
 
         poly = Polygon(pointsA).buffer(0)
-
+        total_area += poly.area
         interpoly = total_poly.intersection(poly)
-        total_overlay_area += interpoly.area
-        # intersection_poly = intersection_poly.union(interpoly)
+        total_poly = total_poly.union(poly)
+
         intersection_poly.append(interpoly)
 
-    total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]]))
-    return (total_poly, intersection_poly, total_overlay_area)
+    # total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]]))
+    return (total_poly, intersection_poly, total_area - total_poly.area)
 
 
 
-# the difference between this and get_chain_area is this don't return poly
-def get_chain_area_calc(points, resolution):  
-    total_overlay_area = 0.0
-    # total_poly = Polygon().buffer(0)
-    total_pointsA = []
-    total_pointsB = []
+# def get_chain_area(points, resolution): 
+#     total_overlay_area = 0.0
+#     total_cover_area = 0.0
+#     # total_poly = Polygon().buffer(0)
+#     intersection_poly = []
+#     total_pointsA = []
+#     total_pointsB = []
+#     for i in range(len(points)-1): 
+#         progress = 0.0
+#         pointsA = []
+#         pointsB = []
+#         for j in range(0, resolution+2): 
+#             ret = gethitpoint1(points[i], points[i+1], progress)
+#             pointsA.append(ret[0])
+#             pointsB.append(ret[1])
+#             progress += 1/(resolution+1)
+#         total_poly = Polygon().buffer(0)
+#         if len(total_pointsA) != 0: 
+#             total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]])).buffer(0)
+#         total_pointsA.extend(pointsA) 
+#         total_pointsB.extend(pointsB)
+#         pointsB = pointsB[::-1]
+#         pointsA = np.vstack([pointsA, pointsB])
+
+#         poly = Polygon(pointsA).buffer(0)
+#         total_cover_area += poly.area
+
+#         interpoly = total_poly.intersection(poly)
+#         total_overlay_area += interpoly.area
+#         # intersection_poly = intersection_poly.union(interpoly)
+#         intersection_poly.append(interpoly)
+
+#     total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]]))
+#     return (total_poly, intersection_poly, total_cover_area, total_overlay_area)
+
+
+def get_chain_area(points, resolution): 
+    total_area = 0.0
+    total_poly = MultiPolygon().buffer(0)
+    intersection_poly = []
     for i in range(len(points)-1): 
         progress = 0.0
         pointsA = []
@@ -100,45 +128,42 @@ def get_chain_area_calc(points, resolution):
             pointsA.append(ret[0])
             pointsB.append(ret[1])
             progress += 1/(resolution+1)
-        total_poly = Polygon().buffer(0)
-        if len(total_pointsA) != 0: 
-            total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]])).buffer(0)
-        total_pointsA.extend(pointsA) 
-        total_pointsB.extend(pointsB)
+        # if len(total_pointsA) != 0: 
+        #     total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]])).buffer(0)
         pointsB = pointsB[::-1]
         pointsA = np.vstack([pointsA, pointsB])
 
         poly = Polygon(pointsA).buffer(0)
-
+        total_area += poly.area
         interpoly = total_poly.intersection(poly)
-        total_overlay_area += interpoly.area
+        total_poly = total_poly.union(poly)
 
-    total_poly_area = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]])).area
-    return (total_poly_area - total_overlay_area, total_overlay_area)
+        intersection_poly.append(interpoly)
 
-def plot_polygon(ax, poly, facecolor, edgecolor='black', alpha=0.5, label=None):
-    """
-    一个更健壮的函数，可以绘制单个Polygon或MultiPolygon。
-    """
-    if poly is None or poly.is_empty:
-        return
+    # total_poly = Polygon(np.vstack([total_pointsA, total_pointsB[::-1]]))
+    return (total_poly, intersection_poly, total_area - total_poly.area)
 
-    # 判断传入的几何体类型
-    if isinstance(poly, MultiPolygon):
-        # 如果是MultiPolygon，就遍历其中的每一个Polygon并分别绘制
-        # 只为第一个多边形添加标签，避免图例重复
-        first = True
-        for p in poly.geoms:
-            x, y = p.exterior.xy
-            if first:
-                ax.fill(x, y, alpha=alpha, fc=facecolor, ec=edgecolor, label=label)
-                first = False
-            else:
-                ax.fill(x, y, alpha=alpha, fc=facecolor, ec=edgecolor)
-    elif isinstance(poly, Polygon):
-        # 如果是单个Polygon，按原方式绘制
-        x, y = poly.exterior.xy
-        ax.fill(x, y, alpha=alpha, fc=facecolor, ec=edgecolor, label=label)
+
+def get_chain_area_calc(points, resolution): 
+    total_area = 0.0
+    total_poly = MultiPolygon().buffer(0)
+    for i in range(len(points)-1): 
+        progress = 0.0
+        pointsA = []
+        pointsB = []
+        for j in range(0, resolution+2): 
+            ret = gethitpoint1(points[i], points[i+1], progress)
+            pointsA.append(ret[0])
+            pointsB.append(ret[1])
+            progress += 1/(resolution+1)
+        pointsB = pointsB[::-1]
+        pointsA = np.vstack([pointsA, pointsB])
+
+        poly = Polygon(pointsA).buffer(0)
+        total_area += poly.area
+        total_poly = total_poly.union(poly)
+
+    return (total_poly.area, total_area - total_poly.area)
 
 
 def random_points(n, ld, rt):

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from shapely.geometry import Polygon
+from shapely.plotting import plot_polygon
 
 from data import *
 from calc import *
@@ -42,31 +43,33 @@ def plot_points(ax, points1):
 # --- 计算条带和多边形 ---
 # 获取两条测线对应的海底边缘点链
     result = get_chain_area(points1, 9)
+    ss = 0
+    for i in result[1]: 
+        ss += i.area
     poly1 = result[0]
 
-    plot_polygon(ax, poly1, 'cyan', label=f'条带1覆盖范围')
+    # plot_polygon(ax, poly1, 'cyan', label=f'条带1覆盖范围')
+    plot_polygon(poly1, ax=ax, add_points=False, color='cyan', alpha=0.8)
 
 # 高亮显示重叠区域
     intersection_poly = result[1]
     for intp in intersection_poly: 
-        plot_polygon(ax, intp, 'red', alpha=0.8) 
+        # plot_polygon(ax, intp, 'red', alpha=0.8) 
+        plot_polygon(intp, ax=ax, add_points=False, color='red', alpha=0.8)
 
 # 在图上添加文字说明
-    result_text = f"重叠率: {result[2]/(result[0].area - result[2]+1e-6):.2%}"
+    result_text = f"重叠率: {result[2]/(result[0].area):.2%}"
     ax.text(0.95, 0.95, result_text, transform=ax.transAxes, fontsize=12,
             verticalalignment='top', horizontalalignment='right',
             bbox=dict(boxstyle='round,pad=0.5', fc='wheat', alpha=0.8))
 
-    result_text = f"覆盖率: {(result[0].area - result[2])/(total_sea_area):.2%}"
+    result_text = f"覆盖率: {(result[0].area)/(total_sea_area):.2%}"
     ax.text(0.95, 0.85, result_text, transform=ax.transAxes, fontsize=12,
             verticalalignment='top', horizontalalignment='right',
             bbox=dict(boxstyle='round,pad=0.5', fc='wheat', alpha=0.8))
 
-# init_points_1 = [[1,1], [1,2], [2,3], [2,2], [3,2]]
-# init_points_1 = [np.array(i) * 1852 for i in init_points_1]
-# init_points_1 = random_points(10, [x_min, y_min], [x_max, y_max])
-# print(init_points_1)
-pointret = SA() 
+# init_points_1 = random_points(20, [x_min, y_min], [x_max, y_max])
+pointret = SA()  # (x,y) x: points y: aimfunction value 
 init_points_1 = pointret[0]
 plot_points(ax, init_points_1)
 

@@ -6,10 +6,17 @@ from data import *
 from geometry_calc import * 
 
 __resolution = 2 #  resolution when calculate chain area 
-__point_n = 10 # points of the routeA
-__Tini = 1000 # initial temprature 
-__Tmin = 10 # min tmp 
-__k = 50 # internal circulation 
+__point_n = 100 # points of the routeA
+__Tini = 3000 # initial temprature 
+__Tmin = 20 # min tmp 
+__k = 20 # internal circulation 
+
+def print_info(): 
+    print(f"解析度(两点之间采样数目): {__resolution}")
+    print(f"点数目: {__point_n}")
+    print(f"初始温度: {__Tini}") 
+    print(f"最小温度: {__Tmin}")
+    print(f"同温探索次数: {__k}")
 
 def aim_function(points): 
     ret = get_chain_area_calc(points, __resolution)
@@ -100,8 +107,11 @@ def generate_neighbor(current_path, temperature, initial_temperature, bounds):
         return move_point(current_path, max_move_dist, bounds)
 
 def SA(): 
-    x = random_points(__point_n, [x_min, y_min], [x_max, y_max])
-    T = __Tini
+
+    print_info()
+
+    x = random_points(__point_n, [x_min, y_min], [x_max, y_max]) # initial value 
+    T = __Tini # temprature
     y = aim_function(x) # result
     t = 0 # time 
 
@@ -120,8 +130,8 @@ def SA():
                     x = xNew 
                     y = yNew 
         t += 1 
-        T = 1000 / (t+1)
-        print(f"iteration {t}, temprature {T}") 
+        T = __Tini / (t+1)
+        print(f"iteration {t}, temprature {T}, current {y}") 
     return (x, y)
 
 
