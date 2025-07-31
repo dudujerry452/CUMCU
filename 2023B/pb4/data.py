@@ -32,6 +32,10 @@ if z_values.shape != (len(y_coords), len(x_coords)):
 x_coords = x_coords * 1852 
 y_coords = y_coords * 1852
 
+x_max, y_max = x_coords[-1], y_coords[-1] 
+x_min, y_min = x_coords[0], y_coords[0]
+total_sea_area = (x_max - x_min) * (y_max - y_min)
+
 interpolator = RegularGridInterpolator(
     (x_coords, y_coords),  # 坐标点 (1)
     z_values.T,            # 坐标点上的值 (2)
